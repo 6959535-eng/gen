@@ -65,7 +65,7 @@ describe('профілі та PIN', () => {
     const rows = t.db.select().from(auditLog).all();
     const userEntries = rows.filter((r) => r.entity === 'users');
     expect(userEntries.length).toBe(2);
-    for (const r of userEntries) expect(r.afterJson).toContain('"pinHash":"***"');
+    for (const r of userEntries) expect(r.afterJson).toMatch(/"pinHash":"\*\*\*[0-9a-f]{6}"/);
   });
 });
 

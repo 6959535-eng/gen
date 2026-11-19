@@ -62,3 +62,11 @@ export function parseSettings(rows: { key: string; valueJson: string; deletedAt:
   }
   return out;
 }
+
+export const SETTING_LABELS: Record<SettingsKey, string> = {
+  deviationThresholdPct: 'Поріг відхилення витрати, %',
+  autoLockMinutes: 'Автоблокування, хв',
+  serviceWarnPct: 'Попередження про ТО, %',
+  backupReminderDays: 'Нагадування про резервну копію, дн',
+  operatorEditHours: 'Оператор змінює свої записи, год',
+};

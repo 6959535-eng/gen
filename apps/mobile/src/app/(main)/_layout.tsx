@@ -54,6 +54,10 @@ export default function MainLayout() {
         <Stack.Screen name="pick" options={{ title: 'Оберіть генератор' }} />
         <Stack.Screen name="session-edit" options={{ title: 'Сесія роботи' }} />
         <Stack.Screen name="journal" options={{ title: 'Журнал' }} />
+        <Stack.Screen name="generator/[id]" options={{ title: 'Генератор' }} />
+        <Stack.Screen name="maintenance" options={{ title: 'Обслуговування' }} />
+        <Stack.Screen name="fuel" options={{ title: 'Склад пального' }} />
+        <Stack.Screen name="receipt" options={{ title: 'Надходження' }} />
       </Stack>
     </View>
   );

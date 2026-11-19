@@ -109,8 +109,8 @@ export default function Home() {
       ) : null}
 
       {dash.stock.length > 0 ? (
-        <Card>
-          <T v="h2">Пальне на складі</T>
+        <Card onPress={() => router.push('/fuel')}>
+          <T v="h2">Пальне на складі ›</T>
           {dash.stock.map((s) => (
             <View key={s.fuelType.id} style={{ gap: 2 }}>
               <KV
@@ -128,7 +128,11 @@ export default function Home() {
         </Card>
       ) : null}
 
-      <Button kind="secondary" title="Журнал записів" onPress={() => router.push('/journal')} />
+      <Row>
+        <Button kind="secondary" title="Журнал" onPress={() => router.push('/journal')} />
+        <Button kind="secondary" title="Склад" onPress={() => router.push('/fuel')} />
+      </Row>
+      {user?.role === 'admin' ? <Button kind="secondary" title="Адмінка" onPress={() => router.push('/admin')} /> : null}
     </Screen>
   );
 }
@@ -154,7 +158,7 @@ function GeneratorTile({ c, at }: { c: GeneratorCard; at: number }) {
   return (
     <Card
       accent={c.running ? colors.ok : g.status === 'repair' ? colors.danger : colors.border}
-      onPress={() => router.push({ pathname: '/journal', params: { generatorId: g.id } })}
+      onPress={() => router.push({ pathname: '/generator/[id]', params: { id: g.id } })}
     >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <T v="h2" style={{ flex: 1 }} numberOfLines={1}>

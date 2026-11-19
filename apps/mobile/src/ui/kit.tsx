@@ -330,3 +330,50 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
+/** Вибір одного варіанта з великих «плиток», що переносяться на кілька рядків. */
+export function Choice<V extends string>({ value, options, onChange }: {
+  value: V;
+  options: readonly { value: V; label: string }[];
+  onChange: (v: V) => void;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {options.map((o) => {
+        const active = o.value === value;
+        return (
+          <Pressable
+            key={o.value}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: active }}
+            onPress={() => onChange(o.value)}
+            style={[styles.seg, { flexGrow: 1, minWidth: '45%' }, active && { backgroundColor: colors.accent, borderColor: colors.accent }]}
+          >
+            <Text style={{ color: active ? colors.accentText : colors.text, fontSize: 18, fontWeight: '700' }}>{o.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/** Пункт меню (адмінка): велика плитка з підписом. */
+export function MenuItem({ title, subtitle, onPress, badge }: {
+  title: string;
+  subtitle?: string;
+  onPress: () => void;
+  badge?: string;
+}) {
+  return (
+    <Card onPress={onPress} style={{ minHeight: 76, justifyContent: 'center' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <View style={{ flex: 1, gap: 2 }}>
+          <T v="h2">{title}</T>
+          {subtitle ? <T v="muted">{subtitle}</T> : null}
+        </View>
+        {badge ? <Pill text={badge} color="#fff" bg={colors.danger} /> : null}
+        <T v="h2" style={{ color: colors.muted }}>›</T>
+      </View>
+    </Card>
+  );
+}

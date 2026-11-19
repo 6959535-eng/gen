@@ -22,7 +22,9 @@ const REDACT: Partial<Record<EntityName, string[]>> = { users: ['pinHash', 'pinS
 function auditJson(entity: EntityName, row: object | null): string | null {
   if (!row) return null;
   const r = { ...(row as Record<string, unknown>) };
-  for (const k of REDACT[entity] ?? []) if (k in r) r[k] = '***';
+  // Сіль змінюється з кожним новим PIN — по ній видно сам факт зміни, не розкриваючи хеш.
+  const marker = typeof r.pinSalt === 'string' ? `***${r.pinSalt.slice(0, 6)}` : '***';
+  for (const k of REDACT[entity] ?? []) if (k in r) r[k] = marker;
   return JSON.stringify(r);
 }
 
