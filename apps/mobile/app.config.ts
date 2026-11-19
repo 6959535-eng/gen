@@ -49,6 +49,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: isDev ? 'ua.gen.oblik.dev' : 'ua.gen.oblik',
+    // Для локальної збірки (scripts/build-apk-local.sh); у EAS номер веде сервер (autoIncrement).
+    versionCode: Number(process.env.GEN_VERSION_CODE ?? 1),
     adaptiveIcon: {
       backgroundColor: '#0e1014',
       foregroundImage: './assets/android-icon-foreground.png',
@@ -77,6 +79,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-router',
     'expo-sqlite',
     'expo-secure-store',
+    './plugins/withReleaseSigning',
     ['expo-splash-screen', { backgroundColor: '#0e1014', image: './assets/splash-icon.png', imageWidth: 160 }],
   ],
   experiments: { typedRoutes: false },

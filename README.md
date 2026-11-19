@@ -90,6 +90,21 @@ cd apps/mobile && pnpm build:apk
 | `production`  | те саме (на майбутнє, окремий канал)        | немає  | `ua.gen.oblik`     |
 | `development` | dev-клієнт для розробки, ставиться поруч    | є      | `ua.gen.oblik.dev` |
 
+### Альтернатива: локальна збірка (без акаунта Expo)
+
+Потрібні JDK 17+, Android SDK (з прийнятою ліцензією), файл ключа підпису `gen-release.jks`
+і файл `signing.env` з паролями (видаються адміну один раз; **у репозиторій не кладіть**).
+
+```bash
+cd apps/mobile && ANDROID_HOME=~/android-sdk GEN_SIGNING_ENV=~/gen-signing/signing.env GEN_VERSION_CODE=2 ./scripts/build-apk-local.sh
+```
+
+`GEN_VERSION_CODE` — номер збірки: кожного разу на 1 більший за попередній (перший APK мав 1).
+Готовий файл — `apps/mobile/dist/oblik-generatoriv-<версія>-<номер>.apk`.
+
+> Локальна збірка й EAS підписують **різними** ключами. Оберіть один спосіб і тримайтеся його,
+> інакше оновлення не встановиться поверх старої версії.
+
 iOS збирається з того самого коду (`npx eas-cli@latest build --platform ios --profile preview`), але для
 встановлення на iPhone потрібен платний акаунт Apple Developer.
 
