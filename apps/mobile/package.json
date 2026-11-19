@@ -27,7 +27,8 @@
     "@react-native-community/datetimepicker": "9.2.1",
     "expo-haptics": "~58.0.8",
     "@expo/metro-runtime": "~58.0.17",
-    "@expo/vector-icons": "^15.0.2"
+    "@expo/vector-icons": "^15.0.2",
+    "expo-dev-client": "~58.0.21"
   },
   "devDependencies": {
     "@types/react": "~19.3.0",
@@ -47,7 +48,9 @@
     "web": "expo start --web",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "build:apk": "eas build --platform android --profile preview",
+    "build:dev": "eas build --platform android --profile development"
   },
   "private": true
 }
