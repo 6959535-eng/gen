@@ -42,3 +42,12 @@ describe('формати Europe/Kyiv', () => {
     expect(formatDuration(65_000, true)).toBe('0:01:05');
   });
 });
+
+import { __fallbackOffsetMin } from '../format';
+describe('резервні правила переходу на літній час', () => {
+  it('збігаються з Intl протягом року', () => {
+    for (let t = Date.UTC(2026, 0, 1); t < Date.UTC(2027, 0, 1); t += 3_600_000 * 7) {
+      expect(__fallbackOffsetMin(t)).toBe(kyivOffsetMinutes(t));
+    }
+  });
+});

@@ -5,7 +5,8 @@
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { migrate } from 'drizzle-orm/expo-sqlite/migrator';
 import { Directory, File, Paths } from 'expo-file-system';
-import { openDatabaseSync } from 'expo-sqlite';
+import { openDatabaseAsync, openDatabaseSync } from 'expo-sqlite';
+import { Platform } from 'react-native';
 import migrations from '../../drizzle/migrations';
 import * as schema from './schema';
 import type { Db } from './types';
@@ -36,13 +37,15 @@ function snapshotBeforeMigration(sqlite: ReturnType<typeof openDatabaseSync>) {
 }
 
 export async function openAppDatabase(): Promise<Db> {
+  // У браузері (лише для розробки) воркер SQLite треба один раз дочекатися асинхронно.
+  if (Platform.OS === 'web') await openDatabaseAsync(DB_NAME);
   const sqlite = openDatabaseSync(DB_NAME);
   sqlite.execSync('PRAGMA journal_mode = WAL;');
   const db = drizzle(sqlite, { schema });
 
   const applied = appliedMigrationsCount(sqlite);
   const pending = migrations.journal.entries.length - applied;
-  if (applied > 0 && pending > 0) snapshotBeforeMigration(sqlite);
+  if (applied > 0 && pending > 0 && Platform.OS !== 'web') snapshotBeforeMigration(sqlite);
   // migrate() виконує всі нові міграції в транзакції; при помилці база лишається як була.
   await migrate(db, migrations);
   return db as unknown as Db;

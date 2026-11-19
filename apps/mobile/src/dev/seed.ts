@@ -92,7 +92,7 @@ export async function seedDemo(repos: Repositories, setActor: (a: CurrentActor |
   repos.fuel.receipts.create({ at: start + 7 * HOUR, fuelTypeId: DT, volumeMl: L(400), supplier: 'Склад бригади', note: '' });
   repos.fuel.receipts.create({ at: start + 7 * HOUR, fuelTypeId: A95, volumeMl: L(150), supplier: 'АЗС', note: '' });
   repos.fuel.receipts.create({ at: start + 7 * HOUR, fuelTypeId: A92, volumeMl: L(40), supplier: 'АЗС', note: '' });
-  repos.fuel.receipts.create({ at: start + 8 * DAY + 9 * HOUR, fuelTypeId: DT, volumeMl: L(200), supplier: 'Склад бригади', note: '' });
+  repos.fuel.receipts.create({ at: start + 8 * DAY + 9 * HOUR, fuelTypeId: DT, volumeMl: L(500), supplier: 'Склад бригади', note: '' });
 
   // Перша заправка «до повного» — точка відліку для розрахунку витрати
   for (const g of [g1, g2]) {

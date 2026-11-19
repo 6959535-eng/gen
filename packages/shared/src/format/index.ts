@@ -27,7 +27,43 @@ export interface KyivParts {
   second: number;
 }
 
+/** Остання неділя місяця (0-based) о 01:00 UTC — момент переходу за правилами ЄС. */
+function lastSundayUtc(year: number, month0: number): number {
+  const lastDay = new Date(Date.UTC(year, month0 + 1, 0));
+  return Date.UTC(year, month0, lastDay.getUTCDate() - lastDay.getUTCDay(), 1);
+}
+
+/** Резерв на випадок, якщо рушій JS не підтримує часові пояси в Intl: правила ЄС (EET/EEST). */
+function fallbackOffsetMin(ms: number): number {
+  const y = new Date(ms).getUTCFullYear();
+  return ms >= lastSundayUtc(y, 2) && ms < lastSundayUtc(y, 9) ? 180 : 120;
+}
+
+let intlOk: boolean | null = null;
+function intlWorks(): boolean {
+  if (intlOk !== null) return intlOk;
+  try {
+    // 15.07.2026 12:00 UTC має бути 15:00 у Києві
+    const parts = partsFmt.formatToParts(new Date(Date.UTC(2026, 6, 15, 12)));
+    intlOk = parts.find((x) => x.type === 'hour')?.value === '15';
+  } catch {
+    intlOk = false;
+  }
+  return intlOk;
+}
+
 export function kyivParts(ms: number): KyivParts {
+  if (!intlWorks()) {
+    const d = new Date(ms + fallbackOffsetMin(ms) * MINUTE);
+    return {
+      year: d.getUTCFullYear(),
+      month: d.getUTCMonth() + 1,
+      day: d.getUTCDate(),
+      hour: d.getUTCHours(),
+      minute: d.getUTCMinutes(),
+      second: d.getUTCSeconds(),
+    };
+  }
   const p: Record<string, number> = {};
   for (const x of partsFmt.formatToParts(new Date(ms))) {
     if (x.type !== 'literal') p[x.type] = Number(x.value);
@@ -43,6 +79,9 @@ export function kyivParts(ms: number): KyivParts {
 }
 
 /** Зсув Києва від UTC у хвилинах для даного моменту (+120 взимку, +180 влітку). */
+/** @internal для тестів */
+export const __fallbackOffsetMin = fallbackOffsetMin;
+
 export function kyivOffsetMinutes(ms: number): number {
   const p = kyivParts(ms);
   const asUtc = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
