@@ -42,6 +42,7 @@ export default function RootLayout() {
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="setup" options={{ title: 'Перший запуск', headerBackVisible: false }} />
             <Stack.Screen name="login" options={{ title: 'Хто працює?', headerBackVisible: false }} />
+            <Stack.Screen name="import-first" options={{ title: 'Імпорт бази' }} />
             <Stack.Screen name="(main)" options={{ headerShown: false }} />
           </Stack>
         </AppProvider>

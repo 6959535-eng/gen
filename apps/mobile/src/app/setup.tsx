@@ -2,7 +2,9 @@ import { PIN_RE } from '@gen/shared';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, View } from 'react-native';
+import { pickGenFile } from '../services/platform';
 import { useRepos } from '../state/AppProvider';
+import { usePendingFile } from '../state/pendingFile';
 import { useSession } from '../state/session';
 import { showError } from '../ui/errors';
 import { Button, Card, Field, Screen, T } from '../ui/kit';
@@ -41,7 +43,12 @@ export default function Setup() {
             kind="secondary"
             large
             title="Імпортувати з файла"
-            onPress={() => Alert.alert('Імпорт', 'Імпорт файла зʼявиться в наступному оновленні додатка.')}
+            onPress={async () => {
+              const f = await pickGenFile();
+              if (!f) return;
+              usePendingFile.getState().setPicked(f);
+              router.push('/import-first');
+            }}
           />
         </Card>
       </Screen>

@@ -8,6 +8,7 @@ export function TextField({
   multiline,
   autoFocus,
   maxLength = 500,
+  secure,
 }: {
   value: string;
   onChangeText: (s: string) => void;
@@ -15,6 +16,7 @@ export function TextField({
   multiline?: boolean;
   autoFocus?: boolean;
   maxLength?: number;
+  secure?: boolean;
 }) {
   return (
     <TextInput
@@ -25,6 +27,9 @@ export function TextField({
       multiline={multiline}
       autoFocus={autoFocus}
       maxLength={maxLength}
+      secureTextEntry={secure}
+      autoCapitalize={secure ? 'none' : 'sentences'}
+      autoCorrect={!secure}
       style={{
         minHeight: multiline ? 96 : size.touch,
         borderRadius: size.radius,

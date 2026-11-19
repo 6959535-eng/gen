@@ -5,13 +5,14 @@ import {
   ENTITY_SCHEMAS,
   planMerge,
   rowsToWrite,
+  SYSTEM_ID,
   uuidv7,
   type Dataset,
   type IntegrityIssue,
   type MergePlan,
 } from '@gen/shared';
 import { isNull, max } from 'drizzle-orm';
-import { TABLES, auditLog, authState, outbox } from '../db/schema';
+import { TABLES, auditLog, authState, outbox, users } from '../db/schema';
 import type { DbOrTx } from '../db/types';
 import { requireActor } from './base';
 import type { RepoContext } from './context';
@@ -47,6 +48,49 @@ export function dataRepo(ctx: RepoContext) {
     return out as unknown as Dataset;
   };
 
+  const mergeIn = (
+    incoming: Dataset,
+    meta: { sourceDeviceId: string; exportedAt: number },
+    actorId: string,
+  ): ImportResult => {
+    const now = ctx.now();
+    const plan = db.transaction((tx) => {
+      const local = {} as Record<string, unknown[]>;
+      for (const n of ENTITY_NAMES) local[n] = tx.select().from(TABLES[n]).all();
+      const p = planMerge(local as unknown as Dataset, incoming);
+      const writes = rowsToWrite(p);
+      for (const n of ENTITY_NAMES) for (const r of writes[n]) upsert(tx, n, r);
+      for (const a of conflictAuditEntries(p, { actorId, deviceId: ctx.deviceId, now })) {
+        tx.insert(auditLog).values(a).onConflictDoNothing().run();
+      }
+      if (!p.isNoop) {
+        const t = p.totals;
+        tx.insert(auditLog)
+          .values({
+            id: uuidv7(now),
+            createdAt: now,
+            updatedAt: now,
+            deletedAt: null,
+            authorId: actorId,
+            deviceId: ctx.deviceId,
+            version: 1,
+            at: now,
+            action: 'import',
+            entity: 'file',
+            entityId: meta.sourceDeviceId,
+            beforeJson: null,
+            afterJson: JSON.stringify({ ...t, exportedAt: meta.exportedAt }),
+            note: `Імпорт: нових ${t.inserts}, оновлено ${t.updates}, конфліктів ${t.conflicts}`,
+          })
+          .run();
+      }
+      setLocalMeta(tx, 'last_import_at', String(now));
+      return p;
+    });
+    ctx.bus.emit([...ENTITY_NAMES]);
+    return { plan, integrity: checkIntegrity(snapshot()) };
+  };
+
   return {
     snapshot,
 
@@ -73,42 +117,20 @@ export function dataRepo(ctx: RepoContext) {
      */
     applyImport(incoming: Dataset, meta: { sourceDeviceId: string; exportedAt: number }): ImportResult {
       const actor = requireAdmin(ctx);
-      const now = ctx.now();
-      const plan = db.transaction((tx) => {
-        const local = {} as Record<string, unknown[]>;
-        for (const n of ENTITY_NAMES) local[n] = tx.select().from(TABLES[n]).all();
-        const p = planMerge(local as unknown as Dataset, incoming);
-        const writes = rowsToWrite(p);
-        for (const n of ENTITY_NAMES) for (const r of writes[n]) upsert(tx, n, r);
-        for (const a of conflictAuditEntries(p, { actorId: actor.id, deviceId: ctx.deviceId, now })) {
-          tx.insert(auditLog).values(a).onConflictDoNothing().run();
-        }
-        if (!p.isNoop) {
-          const t = p.totals;
-          tx.insert(auditLog)
-            .values({
-              id: uuidv7(now),
-              createdAt: now,
-              updatedAt: now,
-              deletedAt: null,
-              authorId: actor.id,
-              deviceId: ctx.deviceId,
-              version: 1,
-              at: now,
-              action: 'import',
-              entity: 'file',
-              entityId: meta.sourceDeviceId,
-              beforeJson: null,
-              afterJson: JSON.stringify({ ...t, exportedAt: meta.exportedAt }),
-              note: `Імпорт: нових ${t.inserts}, оновлено ${t.updates}, конфліктів ${t.conflicts}`,
-            })
-            .run();
-        }
-        setLocalMeta(tx, 'last_import_at', String(now));
-        return p;
-      });
-      ctx.bus.emit([...ENTITY_NAMES]);
-      return { plan, integrity: checkIntegrity(snapshot()) };
+      return mergeIn(incoming, meta, actor.id);
+    },
+
+    /**
+     * Перший запуск нового телефона: профілів ще немає, тож входу (і прав адміна) бути не може.
+     * Дозволено лише в порожню базу — це звичайне злиття в порожній набір.
+     */
+    importIntoEmpty(incoming: Dataset, meta: { sourceDeviceId: string; exportedAt: number }): ImportResult {
+      const hasUsers = db.select({ id: users.id }).from(users).where(isNull(users.deletedAt)).limit(1).all().length > 0;
+      if (hasUsers) throw new RepoError('forbidden', 'База вже містить профілі — імпорт робить адмін');
+      if (!incoming.users.some((u) => u.deletedAt === null && u.isActive && u.role === 'admin')) {
+        throw new RepoError('validation', 'У файлі немає жодного активного адміністратора');
+      }
+      return mergeIn(incoming, meta, SYSTEM_ID);
     },
 
     /** Повна заміна даних (відновлення з копії). Копію поточного стану робить сервіс бекапів до виклику. */

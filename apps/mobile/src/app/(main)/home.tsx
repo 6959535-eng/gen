@@ -63,6 +63,7 @@ export default function Home() {
         <Banner
           level="info"
           text={lastManualBackup ? `Резервну копію не створювали понад ${reminderDays} днів` : 'Резервну копію ще не створювали'}
+          action={{ title: 'Створити', onPress: () => router.push('/data') }}
         />
       ) : null}
 
@@ -132,7 +133,10 @@ export default function Home() {
         <Button kind="secondary" title="Журнал" onPress={() => router.push('/journal')} />
         <Button kind="secondary" title="Склад" onPress={() => router.push('/fuel')} />
       </Row>
-      {user?.role === 'admin' ? <Button kind="secondary" title="Адмінка" onPress={() => router.push('/admin')} /> : null}
+      <Row>
+        <Button kind="secondary" title="Дані й копії" onPress={() => router.push('/data')} />
+        {user?.role === 'admin' ? <Button kind="secondary" title="Адмінка" onPress={() => router.push('/admin')} /> : null}
+      </Row>
     </Screen>
   );
 }

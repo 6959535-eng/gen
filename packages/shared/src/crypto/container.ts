@@ -36,7 +36,8 @@ export class GenFileError extends Error {
   }
 }
 
-export const DEFAULT_SCRYPT = { N: 2 ** 15, r: 8, p: 1 };
+// N=2^14 (16 МБ памʼяті): кілька секунд у Hermes, з індикатором прогресу.
+export const DEFAULT_SCRYPT = { N: 2 ** 14, r: 8, p: 1 };
 export const MIN_PASSWORD_LENGTH = 8;
 
 export type Secret = { password: string } | { deviceKey: Uint8Array; keyId: string };

@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, View } from 'react-native';
 import { useData, useNow, useRepos } from '../state/AppProvider';
+import { usePendingFile } from '../state/pendingFile';
 import { useSession } from '../state/session';
 import { showError } from '../ui/errors';
 import { Button, Card, Screen, T } from '../ui/kit';
@@ -48,7 +49,17 @@ export default function Login() {
       setPin('');
       if (r.ok) {
         signIn(r.user);
-        router.replace('/home');
+        // Під головною не має лишатися стек входу / першого запуску
+        if (router.canDismiss()) router.dismissAll();
+        const pending = usePendingFile.getState().uri;
+        if (pending && r.user.role === 'admin') {
+          usePendingFile.getState().set(null);
+          router.replace({ pathname: '/import', params: { uri: pending } });
+        } else {
+          if (pending) Alert.alert('Імпорт файла', 'Імпортувати дані може лише адміністратор.');
+          usePendingFile.getState().set(null);
+          router.replace('/home');
+        }
         return;
       }
       if (r.reason === 'locked') setLockUntil(r.lockUntil);

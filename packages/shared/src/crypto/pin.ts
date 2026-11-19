@@ -7,7 +7,8 @@ import { bytesToHex, hexToBytes, randomBytes } from './random';
  * Увага: 4–6 цифр — це максимум мільйон варіантів, тож PIN захищає лише від
  * випадкового доступу на спільному телефоні; файл експорту захищає пароль команди.
  */
-export const PIN_ITERATIONS = 20_000;
+// Hermes без JIT: ~0,3–1 с на слабкому телефоні. Від перебору захищає блокування спроб, а не ітерації.
+export const PIN_ITERATIONS = 5_000;
 export const PIN_RE = /^\d{4,6}$/;
 
 export interface PinHash {

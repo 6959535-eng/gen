@@ -2,6 +2,8 @@ import { Redirect, Stack, router } from 'expo-router';
 import { useEffect } from 'react';
 import { AppState, View } from 'react-native';
 import { useCurrentUser, useSettings } from '../../state/AppProvider';
+import { runAutoBackupIfDue } from '../../services/backupCore';
+import { useBackupDeps } from '../../state/backupDeps';
 import { useSession } from '../../state/session';
 import { colors } from '../../ui/theme';
 
@@ -29,6 +31,15 @@ export default function MainLayout() {
     };
   }, [autoLockMinutes]);
 
+  // Щоденна автоматична копія: при вході й при поверненні в додаток
+  const deps = useBackupDeps();
+  useEffect(() => {
+    const run = () => runAutoBackupIfDue(deps).catch((e) => console.warn('auto-backup', e));
+    run();
+    const sub = AppState.addEventListener('change', (st) => st === 'active' && run());
+    return () => sub.remove();
+  }, [deps]);
+
   if (!user) return <Redirect href="/login" />;
 
   return (
@@ -47,7 +58,7 @@ export default function MainLayout() {
           contentStyle: { backgroundColor: colors.bg },
         }}
       >
-        <Stack.Screen name="home" options={{ title: 'Генератори' }} />
+        <Stack.Screen name="home" options={{ title: 'Генератори', headerBackVisible: false, gestureEnabled: false }} />
         <Stack.Screen name="start" options={{ title: 'Запуск' }} />
         <Stack.Screen name="stop" options={{ title: 'Зупинка' }} />
         <Stack.Screen name="refuel" options={{ title: 'Заправка' }} />
@@ -58,6 +69,9 @@ export default function MainLayout() {
         <Stack.Screen name="maintenance" options={{ title: 'Обслуговування' }} />
         <Stack.Screen name="fuel" options={{ title: 'Склад пального' }} />
         <Stack.Screen name="receipt" options={{ title: 'Надходження' }} />
+        <Stack.Screen name="data" options={{ title: 'Дані' }} />
+        <Stack.Screen name="import" options={{ title: 'Імпорт даних' }} />
+        <Stack.Screen name="restore" options={{ title: 'Відновлення з копії' }} />
       </Stack>
     </View>
   );
