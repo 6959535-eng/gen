@@ -30,7 +30,15 @@ const BLOCKED = [
   'android.permission.READ_MEDIA_AUDIO',
 ];
 /** Мережа потрібна лише dev-клієнту (підключення до Metro). */
-const BLOCKED_RELEASE = ['android.permission.INTERNET', 'android.permission.ACCESS_NETWORK_STATE', 'android.permission.SYSTEM_ALERT_WINDOW'];
+const BLOCKED_RELEASE = [
+  'android.permission.INTERNET',
+  'android.permission.ACCESS_NETWORK_STATE',
+  'android.permission.SYSTEM_ALERT_WINDOW',
+  // додають бібліотеки, але додаток їх не використовує (біометрія, джерело встановлення з Google Play)
+  'android.permission.USE_BIOMETRIC',
+  'android.permission.USE_FINGERPRINT',
+  'com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE',
+];
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
