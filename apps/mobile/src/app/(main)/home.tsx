@@ -1,5 +1,6 @@
 import {
   DAY,
+  formatDateTime,
   formatDuration,
   formatLiters,
   formatMotoHours,
@@ -17,6 +18,7 @@ import { seedDemo } from '../../dev/seed';
 import { useCurrentUser, useData, useMinuteTick, useNow, useRepos } from '../../state/AppProvider';
 import { loadDashboard } from '../../state/dashboard';
 import { useSession } from '../../state/session';
+import { useSyncStatus } from '../../state/sync';
 import { showError } from '../../ui/errors';
 import { Banner, Button, Card, Empty, KV, Pill, Row, Screen, T } from '../../ui/kit';
 import { colors } from '../../ui/theme';
@@ -56,6 +58,7 @@ export default function Home() {
       {clockBad ? (
         <Banner level="danger" text="Час телефона раніший за останній запис у базі. Перевірте дату й час у налаштуваннях телефона." />
       ) : null}
+      <SyncBanner />
       {dash.warnings.map((w, i) => (
         <Banner key={i} level={w.level} text={w.text} />
       ))}
@@ -212,4 +215,24 @@ function LiveHours({ c, at }: { c: GeneratorCard; at: number }) {
   // Мотогодини пораховано в момент at; для працюючого генератора додаємо час, що минув відтоді.
   const extra = c.running ? Math.max(0, (now - at) / MINUTE) : 0;
   return <KV k="Мотогодини" v={formatMotoHours(c.currentHoursMin + extra)} />;
+}
+
+/** Стан синхронізації на головній: лише коли є що сказати. */
+function SyncBanner() {
+  const st = useSyncStatus();
+  if (!st.url) return null;
+  if (st.lastError) {
+    return <Banner level="danger" text={`Сервер: ${st.lastError}`} action={{ title: 'Деталі', onPress: () => router.push('/server') }} />;
+  }
+  const stale = !st.lastSyncAt || Date.now() - st.lastSyncAt > 6 * 3_600_000;
+  if (st.pending && stale) {
+    return (
+      <Banner
+        level="warn"
+        text={`Не відправлено на сервер: ${st.pending}. ${st.lastSyncAt ? `Остання синхронізація ${formatDateTime(st.lastSyncAt)}` : 'Синхронізації ще не було'}`}
+        action={{ title: 'Деталі', onPress: () => router.push('/server') }}
+      />
+    );
+  }
+  return null;
 }

@@ -13,6 +13,7 @@ import { canSaveToFolder, files, pickGenFile, saveToFolder, secrets, shareFile }
 import { useCurrentUser, useData } from '../../state/AppProvider';
 import { useBackupDeps } from '../../state/backupDeps';
 import { usePendingFile } from '../../state/pendingFile';
+import { useSyncStatus } from '../../state/sync';
 import { showError } from '../../ui/errors';
 import { Banner, Button, Card, Field, KV, Row, Screen, T } from '../../ui/kit';
 import { TextField } from '../../ui/TextField';
@@ -31,6 +32,7 @@ export default function DataScreen() {
   const [hasPassword, setHasPassword] = useState<boolean | null>(null);
   const [backups, setBackups] = useState<LocalBackup[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const serverOn = useData((r) => !!r.local.get('server_url'));
 
   useFocusEffect(
     useCallback(() => {
@@ -65,6 +67,8 @@ export default function DataScreen() {
       {busy ? (
         <Banner level="info" text={`${busy}… ${progress !== null ? Math.round(progress * 100) + '%' : ''}`} />
       ) : null}
+
+      <ServerLink />
 
       <Card accent={overdue ? colors.warn : colors.ok}>
         <T v="h2">Резервна копія</T>
@@ -134,6 +138,9 @@ export default function DataScreen() {
         <Card>
           <T v="h2">Відновлення з копії</T>
           <T v="small">Повністю замінює всі дані на телефоні. Перед цим автоматично зберігається копія поточного стану.</T>
+          {serverOn ? (
+            <Banner level="warn" text="Телефон підключено до сервера: після відновлення новіші записи з сервера повернуться під час синхронізації. Відновлення потрібне здебільшого, якщо втрачено сам сервер." />
+          ) : null}
           <Button
             kind="secondary"
             title="Обрати файл копії…"
@@ -206,6 +213,22 @@ function TeamPassword({ has, onChanged }: { has: boolean | null; onChanged: () =
           {a && b && a !== b ? <T style={{ color: colors.danger }}>Паролі не збігаються</T> : null}
         </>
       )}
+    </Card>
+  );
+}
+
+function ServerLink() {
+  const st = useSyncStatus();
+  return (
+    <Card onPress={() => router.push('/server')} accent={!st.url ? colors.border : st.lastError ? colors.danger : colors.ok}>
+      <T v="h2">Сервер ›</T>
+      <T v="muted">
+        {!st.url
+          ? 'Не підключено — дані лише на цьому телефоні'
+          : st.lastError
+            ? `Помилка: ${st.lastError}`
+            : `Підключено · ${st.lastSyncAt ? `синхронізовано ${formatDateTime(st.lastSyncAt)}` : 'ще не синхронізовано'}${st.pending ? ` · не відправлено: ${st.pending}` : ''}`}
+      </T>
     </Card>
   );
 }

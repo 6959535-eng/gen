@@ -8,10 +8,11 @@ import {
   SYSTEM_ID,
   uuidv7,
   type Dataset,
+  type EntityName,
   type IntegrityIssue,
   type MergePlan,
 } from '@gen/shared';
-import { isNull, max } from 'drizzle-orm';
+import { asc, count, desc, eq, isNotNull, isNull, max } from 'drizzle-orm';
 import { TABLES, auditLog, authState, outbox, users } from '../db/schema';
 import type { DbOrTx } from '../db/types';
 import { requireActor } from './base';
@@ -169,6 +170,65 @@ export function dataRepo(ctx: RepoContext) {
           .run();
       });
       ctx.bus.emit([...ENTITY_NAMES, 'local']);
+    },
+
+    // ---------- Синхронізація з сервером ----------
+
+    /**
+     * Застосувати зміни, отримані з сервера (pull). Сервер уже перевірив права й зафіксував конфлікти,
+     * тож тут — лише last-write-wins без outbox і без записів у журнал.
+     */
+    applyRemote(changes: { entity: EntityName; row: Record<string, unknown> }[]): { applied: number } {
+      if (!changes.length) return { applied: 0 };
+      const incoming = {} as Record<EntityName, unknown[]>;
+      for (const n of ENTITY_NAMES) incoming[n] = [];
+      for (const c of changes) {
+        const p = ENTITY_SCHEMAS[c.entity]?.safeParse(c.row);
+        if (p?.success) incoming[c.entity].push(p.data);
+      }
+      const applied = db.transaction((tx) => {
+        const local = {} as Record<string, unknown[]>;
+        for (const n of ENTITY_NAMES) {
+          const ids = new Set((incoming[n] as { id: string }[]).map((r) => r.id));
+          local[n] = ids.size ? tx.select().from(TABLES[n]).all().filter((r) => ids.has((r as { id: string }).id)) : [];
+        }
+        const plan = planMerge(local as unknown as Dataset, incoming as unknown as Dataset);
+        const writes = rowsToWrite(plan);
+        let count = 0;
+        for (const n of ENTITY_NAMES) for (const r of writes[n]) {
+          upsert(tx, n, r);
+          count++;
+        }
+        return count;
+      });
+      if (applied) ctx.bus.emit([...ENTITY_NAMES]);
+      return { applied };
+    },
+
+    /** Сервер відхилив зміну — повертаємо його версію запису (без порівняння часу). */
+    forceServerRow(entity: EntityName, row: Record<string, unknown>) {
+      const p = ENTITY_SCHEMAS[entity].safeParse(row);
+      if (!p.success) return;
+      upsert(db, entity, p.data);
+      ctx.bus.emit([entity]);
+    },
+
+    outbox: {
+      pending: (limit = 200) =>
+        db.select().from(outbox).where(isNull(outbox.syncedAt)).orderBy(asc(outbox.id)).limit(limit).all(),
+      pendingCount: () =>
+        db.select({ n: count() }).from(outbox).where(isNull(outbox.syncedAt)).get()?.n ?? 0,
+      markSynced(results: { id: string; error?: string }[], at: number) {
+        db.transaction((tx) => {
+          for (const r of results) {
+            tx.update(outbox).set({ syncedAt: at, syncError: r.error ?? null }).where(eq(outbox.id, r.id)).run();
+          }
+        });
+        ctx.bus.emit(['local']);
+      },
+      /** Останні відхилені сервером зміни (для показу адміну). */
+      rejected: (limit = 20) =>
+        db.select().from(outbox).where(isNotNull(outbox.syncError)).orderBy(desc(outbox.id)).limit(limit).all(),
     },
 
     integrity: () => checkIntegrity(snapshot()),

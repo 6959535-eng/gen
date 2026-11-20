@@ -66,7 +66,7 @@ export function compareVersions(a: Row, b: Row): number {
  * однакова version (обидва відредагували з тієї ж базової версії) або
  * version і updated_at «суперечать» одна одній (більше правок, але старіший час).
  */
-function isConflict(local: Row, incoming: Row): boolean {
+export function isConflict(local: Row, incoming: Row): boolean {
   if (payload(local) === payload(incoming)) return false;
   if (local.version === incoming.version) return true;
   return Math.sign(incoming.version - local.version) !== Math.sign(incoming.updatedAt - local.updatedAt);

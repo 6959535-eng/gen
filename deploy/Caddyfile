@@ -1,0 +1,10 @@
+{$DOMAIN} {
+	encode gzip
+	# Назовні відкрито лише API синхронізації
+	handle /api/* {
+		reverse_proxy server:3000
+	}
+	handle {
+		respond "Облік генераторів: сервер синхронізації працює" 200
+	}
+}

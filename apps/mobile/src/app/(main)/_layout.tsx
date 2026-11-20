@@ -5,6 +5,7 @@ import { useCurrentUser, useSettings } from '../../state/AppProvider';
 import { runAutoBackupIfDue } from '../../services/backupCore';
 import { useBackupDeps } from '../../state/backupDeps';
 import { useSession } from '../../state/session';
+import { useAutoSync } from '../../state/sync';
 import { colors } from '../../ui/theme';
 
 /** Захищена частина: без входу — на екран профілів; автоблокування після бездіяльності. */
@@ -40,6 +41,8 @@ export default function MainLayout() {
     return () => sub.remove();
   }, [deps]);
 
+  useAutoSync();
+
   if (!user) return <Redirect href="/login" />;
 
   return (
@@ -72,6 +75,7 @@ export default function MainLayout() {
         <Stack.Screen name="data" options={{ title: 'Дані' }} />
         <Stack.Screen name="import" options={{ title: 'Імпорт даних' }} />
         <Stack.Screen name="restore" options={{ title: 'Відновлення з копії' }} />
+        <Stack.Screen name="server" options={{ title: 'Сервер' }} />
       </Stack>
     </View>
   );

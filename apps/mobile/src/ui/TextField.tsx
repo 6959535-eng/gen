@@ -9,6 +9,8 @@ export function TextField({
   autoFocus,
   maxLength = 500,
   secure,
+  autoCapitalize,
+  keyboardType,
 }: {
   value: string;
   onChangeText: (s: string) => void;
@@ -17,6 +19,8 @@ export function TextField({
   autoFocus?: boolean;
   maxLength?: number;
   secure?: boolean;
+  autoCapitalize?: 'none' | 'characters' | 'sentences' | 'words';
+  keyboardType?: 'default' | 'url';
 }) {
   return (
     <TextInput
@@ -28,8 +32,9 @@ export function TextField({
       autoFocus={autoFocus}
       maxLength={maxLength}
       secureTextEntry={secure}
-      autoCapitalize={secure ? 'none' : 'sentences'}
-      autoCorrect={!secure}
+      autoCapitalize={autoCapitalize ?? (secure ? 'none' : 'sentences')}
+      autoCorrect={!secure && !autoCapitalize}
+      keyboardType={keyboardType ?? 'default'}
       style={{
         minHeight: multiline ? 96 : size.touch,
         borderRadius: size.radius,

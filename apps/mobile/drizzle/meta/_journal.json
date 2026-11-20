@@ -8,6 +8,13 @@
       "when": 1795074082318,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1795168564383,
+      "tag": "0001_outbox_sync_error",
+      "breakpoints": true
     }
   ]
 }

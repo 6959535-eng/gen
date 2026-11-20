@@ -11,6 +11,9 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  */
 const EAS_PROJECT_ID = '';
 
+/** Адреса сервера синхронізації за замовчуванням (підставляється у форму підключення). */
+const DEFAULT_SERVER = process.env.GEN_DEFAULT_SERVER ?? '173-242-63-63.sslip.io';
+
 const variant = (process.env.APP_VARIANT ?? 'development') as 'development' | 'preview' | 'production';
 const isDev = variant === 'development';
 
@@ -29,10 +32,11 @@ const BLOCKED = [
   'android.permission.READ_MEDIA_VIDEO',
   'android.permission.READ_MEDIA_AUDIO',
 ];
-/** Мережа потрібна лише dev-клієнту (підключення до Metro). */
+/**
+ * Не потрібні робочій збірці. INTERNET лишається — лише для синхронізації з вашим сервером
+ * (тільки HTTPS: незашифровані зʼєднання Android блокує за замовчуванням).
+ */
 const BLOCKED_RELEASE = [
-  'android.permission.INTERNET',
-  'android.permission.ACCESS_NETWORK_STATE',
   'android.permission.SYSTEM_ALERT_WINDOW',
   // додають бібліотеки, але додаток їх не використовує (біометрія, джерело встановлення з Google Play)
   'android.permission.USE_BIOMETRIC',
@@ -44,7 +48,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: isDev ? 'Генератори (dev)' : 'Облік генераторів',
   slug: 'gen-oblik',
-  version: '1.0.0',
+  version: '1.1.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
   scheme: isDev ? 'genoblik-dev' : 'genoblik',
@@ -91,5 +95,5 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ['expo-splash-screen', { backgroundColor: '#0e1014', image: './assets/splash-icon.png', imageWidth: 160 }],
   ],
   experiments: { typedRoutes: false },
-  extra: { variant, ...(EAS_PROJECT_ID ? { eas: { projectId: EAS_PROJECT_ID } } : {}) },
+  extra: { variant, defaultServer: DEFAULT_SERVER, ...(EAS_PROJECT_ID ? { eas: { projectId: EAS_PROJECT_ID } } : {}) },
 });

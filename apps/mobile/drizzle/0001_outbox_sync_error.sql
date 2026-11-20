@@ -1,0 +1,1 @@
+ALTER TABLE `outbox` ADD `sync_error` text;

@@ -37,6 +37,11 @@ export default function Setup() {
           <Button large title="Створити нову базу" onPress={() => setStep('name')} />
         </Card>
         <Card>
+          <T v="h2">Команда вже працює через сервер</T>
+          <T v="muted">Адмін дасть адресу сервера й код підключення.</T>
+          <Button large title="Підключитися до сервера" onPress={() => router.push('/connect-first')} />
+        </Card>
+        <Card>
           <T v="h2">Уже є база на іншому телефоні</T>
           <T v="muted">Попросіть адміна зробити експорт і надіслати файл .gen.</T>
           <Button

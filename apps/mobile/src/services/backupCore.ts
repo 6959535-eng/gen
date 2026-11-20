@@ -21,6 +21,7 @@ import {
   type Secret,
 } from '@gen/shared';
 import type { Repositories } from '../repositories';
+import { markNeedsSnapshot } from './syncCore';
 
 /** Мінімальний інтерфейс файлового сховища (внутрішня памʼять додатка). */
 export interface FileStore {
@@ -206,6 +207,7 @@ export async function applyImport(
     sourceDeviceId: payload.deviceId,
     exportedAt: payload.exportedAt,
   });
+  if (!res.plan.isNoop) markNeedsSnapshot(d.repos);
   return { ...res, safetyBackup };
 }
 
@@ -213,6 +215,7 @@ export async function applyImport(
 export async function restoreFromPayload(d: BackupDeps, payload: ExportPayload, label: string) {
   const safetyBackup = await runAutoBackupIfDue(d, true);
   d.repos.data.replaceAll(payload.tables, label);
+  markNeedsSnapshot(d.repos);
   return { safetyBackup };
 }
 

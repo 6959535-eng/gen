@@ -43,6 +43,7 @@ export default function RootLayout() {
             <Stack.Screen name="setup" options={{ title: 'Перший запуск', headerBackVisible: false }} />
             <Stack.Screen name="login" options={{ title: 'Хто працює?', headerBackVisible: false }} />
             <Stack.Screen name="import-first" options={{ title: 'Імпорт бази' }} />
+            <Stack.Screen name="connect-first" options={{ title: 'Підключення до сервера' }} />
             <Stack.Screen name="(main)" options={{ headerShown: false }} />
           </Stack>
         </AppProvider>

@@ -18,7 +18,14 @@ export type LocalMetaKey =
   | 'last_manual_backup_at'
   | 'last_auto_backup_at'
   | 'last_import_at'
-  | 'setup_completed';
+  | 'setup_completed'
+  // синхронізація з сервером
+  | 'server_url'
+  | 'server_id'
+  | 'server_cursor'
+  | 'server_needs_snapshot'
+  | 'last_sync_at'
+  | 'last_sync_error';
 
 export function getLocalMeta(db: DbOrTx, key: LocalMetaKey): string | null {
   return db.select().from(localMeta).where(eq(localMeta.key, key)).get()?.value ?? null;

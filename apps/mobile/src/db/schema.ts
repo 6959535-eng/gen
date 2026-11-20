@@ -158,6 +158,8 @@ export const outbox = sqliteTable(
     authorId: text('author_id').notNull(),
     deviceId: text('device_id').notNull(),
     syncedAt: integer('synced_at'),
+    /** Причина, з якої сервер відхилив зміну (показується адміну) */
+    syncError: text('sync_error'),
   },
   (t) => [index('outbox_unsynced_idx').on(t.syncedAt, t.id)],
 );
