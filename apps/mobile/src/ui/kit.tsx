@@ -246,9 +246,16 @@ export function Field({ label, children, hint }: { label: string; children: Reac
 /** Рядок «назва — значення». */
 export function KV({ k, v, vColor }: { k: string; v: string; vColor?: string }) {
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
-      <T v="muted">{k}</T>
-      <T style={[{ fontWeight: '600', fontVariant: ['tabular-nums'] }, vColor ? { color: vColor } : null]}>{v}</T>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+      <T v="muted" style={{ flexShrink: 1 }}>{k}</T>
+      <T
+        style={[
+          { fontWeight: '600', fontVariant: ['tabular-nums'], flexShrink: 1, textAlign: 'right', marginLeft: 'auto' },
+          vColor ? { color: vColor } : null,
+        ]}
+      >
+        {v}
+      </T>
     </View>
   );
 }

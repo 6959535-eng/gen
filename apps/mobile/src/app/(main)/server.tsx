@@ -79,14 +79,14 @@ export default function ServerScreen() {
     );
   }
 
-  const lastAgo = st.lastSyncAt ? formatDuration(now - st.lastSyncAt) : null;
+  const lastAgo = !st.lastSyncAt ? null : now - st.lastSyncAt < 60_000 ? 'щойно' : `${formatDuration(now - st.lastSyncAt)} тому`;
   return (
     <Screen>
       <Stack.Screen options={{ title: 'Сервер' }} />
       {st.lastError ? <Banner level="danger" text={`Остання спроба: ${st.lastError}`} /> : null}
       <Card accent={st.lastError ? colors.danger : st.pending ? colors.warn : colors.ok}>
         <KV k="Сервер" v={st.url.replace(/^https:\/\//, '')} />
-        <KV k="Остання синхронізація" v={st.lastSyncAt ? `${formatTime(st.lastSyncAt)} (${lastAgo} тому)` : 'ще не було'} />
+        <KV k="Остання синхронізація" v={st.lastSyncAt ? `${formatTime(st.lastSyncAt)}, ${lastAgo}` : 'ще не було'} />
         <KV k="Не відправлено змін" v={String(st.pending)} vColor={st.pending ? colors.warn : undefined} />
         {st.needsSnapshot ? <T v="small">Очікує повного знімка (після імпорту / відновлення) — потрібен вхід адміна.</T> : null}
         <Button
