@@ -72,6 +72,8 @@ export default function MainLayout() {
         <Stack.Screen name="maintenance" options={{ title: 'Обслуговування' }} />
         <Stack.Screen name="fuel" options={{ title: 'Склад пального' }} />
         <Stack.Screen name="receipt" options={{ title: 'Надходження' }} />
+        <Stack.Screen name="issue" options={{ title: 'Видача зі складу' }} />
+        <Stack.Screen name="inventory" options={{ title: 'Інвентаризація' }} />
         <Stack.Screen name="data" options={{ title: 'Дані' }} />
         <Stack.Screen name="import" options={{ title: 'Імпорт даних' }} />
         <Stack.Screen name="restore" options={{ title: 'Відновлення з копії' }} />

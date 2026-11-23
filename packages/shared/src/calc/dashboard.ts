@@ -1,10 +1,10 @@
 import { DAY, formatMotoHours } from '../format';
 import type { AppSettings } from '../schemas/settings';
-import type { FuelReceipt, FuelType, Generator, Maintenance, Refuel, WorkSession } from '../schemas/entities';
+import type { FuelInventory, FuelIssue, FuelReceipt, FuelType, Generator, Maintenance, Refuel, WorkSession } from '../schemas/entities';
 import { averageConsumption, consumptionIntervals, type ConsumptionInterval } from './consumption';
 import { buildTimeline, openSession } from './hours';
 import { serviceStatus, type ServiceStatus } from './service';
-import { stockBalance, stockHoursLeft, stockMovements } from './stock';
+import { lastInventoryAt, stockBalance, stockHoursLeft, stockMovements } from './stock';
 
 export interface DashboardInput {
   generators: readonly Generator[];
@@ -12,6 +12,8 @@ export interface DashboardInput {
   refuels: readonly Refuel[];
   maintenance: readonly Maintenance[];
   receipts: readonly FuelReceipt[];
+  issues: readonly FuelIssue[];
+  inventories: readonly FuelInventory[];
   fuelTypes: readonly FuelType[];
   settings: AppSettings;
   now: number;
@@ -36,6 +38,8 @@ export interface StockRow {
   rateMlPerHour: number | null;
   rateIsNorm: boolean;
   hoursLeft: number | null;
+  /** Дата останньої інвентаризації (null — не було) */
+  lastInventoryAt: number | null;
 }
 
 export type WarningLevel = 'danger' | 'warn' | 'info';
@@ -98,7 +102,8 @@ export function buildDashboard(i: DashboardInput): Dashboard {
     });
 
   // Склад: залишок і запас годин на типи пального, що використовуються або мають рух
-  const balance = stockBalance(stockMovements(i.receipts, i.refuels));
+  const balance = stockBalance(stockMovements(i.receipts, i.issues, i.inventories));
+  const invAt = lastInventoryAt(i.inventories);
   const usedTypes = new Set([...balance.keys(), ...cards.map((c) => c.generator.fuelTypeId)]);
   const stock: StockRow[] = i.fuelTypes
     .filter((f) => f.deletedAt === null && usedTypes.has(f.id))
@@ -113,7 +118,7 @@ export function buildDashboard(i: DashboardInput): Dashboard {
         : null;
       const rate = avg?.mlPerHour ?? norm;
       const balanceMl = balance.get(ft.id) ?? 0;
-      if (balanceMl <= 0 && ofType.length) {
+      if (balanceMl <= 0 && ofType.length && balance.has(ft.id)) {
         warnings.push({ level: 'danger', text: `${ft.name}: на складі немає пального` });
       }
       return {
@@ -122,6 +127,7 @@ export function buildDashboard(i: DashboardInput): Dashboard {
         rateMlPerHour: rate,
         rateIsNorm: !avg && norm !== null,
         hoursLeft: stockHoursLeft(balanceMl, rate),
+        lastInventoryAt: invAt.get(ft.id) ?? null,
       };
     });
 

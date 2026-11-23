@@ -245,3 +245,26 @@ describe('демо-дані', () => {
     expect((res.admin as User).role).toBe('admin');
   });
 });
+
+describe('склад окремо від генераторів', () => {
+  it('заправка зі «Склад» не списує; видача списує; інвентаризація встановлює залишок', async () => {
+    const t = await setup();
+    t.repos.fuel.receipts.create({ at: t.now() - 5 * HOUR, fuelTypeId: DT, volumeMl: 100_000, supplier: 'АЗС', note: '' });
+    t.repos.refuels.create({
+      generatorId: t.gen.id, fuelTypeId: DT, at: t.now() - 4 * HOUR, volumeMl: 30_000, isFull: true, source: 'warehouse', meterMin: null, note: '',
+    });
+    expect(t.repos.fuel.balanceNow(DT)).toBe(100_000);
+    t.repos.fuel.issues.create({ at: t.now() - 3 * HOUR, fuelTypeId: DT, volumeMl: 25_000, recipient: 'авто', note: '' });
+    expect(t.repos.fuel.balanceNow(DT)).toBe(75_000);
+    t.repos.fuel.inventories.create({ at: t.now() - 2 * HOUR, fuelTypeId: DT, actualMl: 70_000, note: '' });
+    expect(t.repos.fuel.balanceNow(DT)).toBe(70_000);
+  });
+
+  it('видача більше залишку — потрібне підтвердження; оператор може видавати', async () => {
+    const t = await setup();
+    t.asOperator();
+    const f = { at: t.now(), fuelTypeId: DT, volumeMl: 5_000, recipient: 'авто', note: '' };
+    expect(code(() => t.repos.fuel.issues.create(f))).toBe('needs_confirmation');
+    expect(code(() => t.repos.fuel.issues.create(f, { confirm: true }))).toBe('ok');
+  });
+});

@@ -97,6 +97,33 @@ export const fuelReceipts = sqliteTable(
   (t) => [index('fuel_receipts_at_idx').on(t.at)],
 );
 
+/** Видача пального зі складу (склад ведеться окремо від заправок генераторів). */
+export const fuelIssues = sqliteTable(
+  'fuel_issues',
+  {
+    ...meta(),
+    at: integer('at').notNull(),
+    fuelTypeId: text('fuel_type_id').notNull(),
+    volumeMl: integer('volume_ml').notNull(),
+    recipient: text('recipient').notNull().default(''),
+    note: text('note').notNull().default(''),
+  },
+  (t) => [index('fuel_issues_at_idx').on(t.at)],
+);
+
+/** Інвентаризація: фактичний залишок на складі після вимірювання. */
+export const fuelInventories = sqliteTable(
+  'fuel_inventories',
+  {
+    ...meta(),
+    at: integer('at').notNull(),
+    fuelTypeId: text('fuel_type_id').notNull(),
+    actualMl: integer('actual_ml').notNull(),
+    note: text('note').notNull().default(''),
+  },
+  (t) => [index('fuel_inventories_at_idx').on(t.at)],
+);
+
 export const maintenance = sqliteTable(
   'maintenance',
   {
@@ -186,6 +213,8 @@ export const TABLES = {
   workSessions,
   refuels,
   fuelReceipts,
+  fuelIssues,
+  fuelInventories,
   maintenance,
   settings,
   auditLog,

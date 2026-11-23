@@ -5,6 +5,8 @@ import {
 } from '../format';
 import {
   LABELS,
+  type FuelInventory,
+  type FuelIssue,
   type FuelReceipt,
   type Generator,
   type Maintenance,
@@ -13,13 +15,15 @@ import {
 } from '../schemas/entities';
 import { sessionMinutes } from './hours';
 
-export const JOURNAL_KINDS = ['session', 'refuel', 'maintenance', 'receipt'] as const;
+export const JOURNAL_KINDS = ['session', 'refuel', 'maintenance', 'receipt', 'issue', 'inventory'] as const;
 export type JournalKind = (typeof JOURNAL_KINDS)[number];
 export const JOURNAL_KIND_LABELS: Record<JournalKind, string> = {
   session: 'Робота',
   refuel: 'Заправка',
   maintenance: 'ТО',
   receipt: 'Надходження',
+  issue: 'Видача',
+  inventory: 'Інвентаризація',
 };
 
 export interface JournalItem {
@@ -51,6 +55,8 @@ export interface JournalInput {
   refuels: readonly Refuel[];
   maintenance: readonly Maintenance[];
   receipts: readonly FuelReceipt[];
+  issues?: readonly FuelIssue[];
+  inventories?: readonly FuelInventory[];
   fuelTypeNames: ReadonlyMap<string, string>;
   /** id заправок, після яких витрата відхилилась від норми */
   flaggedRefuelIds?: ReadonlySet<string>;
@@ -137,6 +143,37 @@ export function buildJournal(i: JournalInput, f: JournalFilter = {}): JournalIte
         createdAt: r.createdAt,
         title: `Склад +${formatLiters(r.volumeMl)} ${i.fuelTypeNames.get(r.fuelTypeId) ?? ''}`.trim(),
         details: [r.supplier || null, r.note || null].filter(Boolean).join(' · '),
+      });
+    }
+  }
+
+  if (kinds.has('issue') && !f.generatorId) {
+    for (const r of i.issues ?? []) {
+      if (r.deletedAt !== null) continue;
+      out.push({
+        kind: 'issue',
+        id: r.id,
+        at: r.at,
+        generatorId: null,
+        authorId: r.authorId,
+        createdAt: r.createdAt,
+        title: `Склад −${formatLiters(r.volumeMl)} ${i.fuelTypeNames.get(r.fuelTypeId) ?? ''}`.trim(),
+        details: [r.recipient ? `кому: ${r.recipient}` : null, r.note || null].filter(Boolean).join(' · '),
+      });
+    }
+  }
+  if (kinds.has('inventory') && !f.generatorId) {
+    for (const r of i.inventories ?? []) {
+      if (r.deletedAt !== null) continue;
+      out.push({
+        kind: 'inventory',
+        id: r.id,
+        at: r.at,
+        generatorId: null,
+        authorId: r.authorId,
+        createdAt: r.createdAt,
+        title: `Інвентаризація: ${formatLiters(r.actualMl)} ${i.fuelTypeNames.get(r.fuelTypeId) ?? ''}`.trim(),
+        details: r.note,
       });
     }
   }

@@ -44,6 +44,8 @@ export default function Journal() {
       refuels: r.refuels.listAll(),
       maintenance: r.maintenance.listAll(),
       receipts: r.fuel.receipts.list(),
+      issues: r.fuel.issues.list(),
+      inventories: r.fuel.inventories.list(),
       fuelTypeNames: new Map(r.fuel.types.list({ includeInactive: true }).map((f) => [f.id, f.name])),
       flagged,
       settings: r.settings.get(),

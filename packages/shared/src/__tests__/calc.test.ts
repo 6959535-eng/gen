@@ -102,16 +102,30 @@ describe('до наступного ТО', () => {
   });
 });
 
-describe('склад', () => {
-  const g = gen();
-  it('залишок = надходження − видача зі складу', () => {
-    const receipts = [{ ...meta(), at: T0, fuelTypeId: DT, volumeMl: 100_000, supplier: '', note: '' }];
-    const rs = [refuel(g, 1, 20, true), refuel(g, 2, 5, false, { source: 'canister' })];
-    const mv = stockMovements(receipts, rs);
-    expect(mv).toHaveLength(2);
-    expect(stockBalance(mv).get(DT)).toBe(80_000);
-    expect(stockHoursLeft(80_000, 1000)).toBe(80);
-    expect(stockHoursLeft(80_000, null)).toBeNull();
+describe('склад (окремо від генераторів)', () => {
+  const rec = (h: number, l: number) => ({ ...meta(T0 + h * HOUR), at: T0 + h * HOUR, fuelTypeId: DT, volumeMl: l * 1000, supplier: 'АЗС', note: '' });
+  const iss = (h: number, l: number) => ({ ...meta(T0 + h * HOUR), at: T0 + h * HOUR, fuelTypeId: DT, volumeMl: l * 1000, recipient: 'авто', note: '' });
+  const inv = (h: number, l: number) => ({ ...meta(T0 + h * HOUR), at: T0 + h * HOUR, fuelTypeId: DT, actualMl: l * 1000, note: '' });
+
+  it('залишок = надходження − видача', () => {
+    const mv = stockMovements([rec(0, 100)], [iss(1, 20), iss(2, 5)]);
+    expect(mv).toHaveLength(3);
+    expect(mv[0]!.balanceMl).toBe(75_000); // найновіший перший
+    expect(stockBalance(mv).get(DT)).toBe(75_000);
+    expect(stockHoursLeft(75_000, 1000)).toBe(75);
+    expect(stockHoursLeft(75_000, null)).toBeNull();
+  });
+
+  it('інвентаризація встановлює фактичний залишок і показує нестачу', () => {
+    const mv = stockMovements([rec(0, 100), rec(5, 10)], [iss(1, 20)], [inv(3, 70)]);
+    const invMv = mv.find((m) => m.kind === 'inventory')!;
+    expect(invMv.deltaMl).toBe(-10_000); // облік 80, факт 70 — нестача 10 л
+    expect(stockBalance(mv).get(DT)).toBe(80_000); // 70 + 10 після інвентаризації
+  });
+
+  it('видалені записи не враховуються; заправки генераторів на склад не впливають', () => {
+    const deleted = { ...iss(1, 50), deletedAt: T0 + 2 * HOUR };
+    expect(stockBalance(stockMovements([rec(0, 100)], [deleted])).get(DT)).toBe(100_000);
   });
 });
 

@@ -7,7 +7,9 @@ const KIND_COLOR: Record<JournalKind, string> = {
   session: colors.ok,
   refuel: colors.accent,
   maintenance: colors.info,
-  receipt: colors.muted,
+  receipt: colors.ok,
+  issue: colors.danger,
+  inventory: colors.info,
 };
 
 export function JournalRow({ item, author, onPress, showDate }: {

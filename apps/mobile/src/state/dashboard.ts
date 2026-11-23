@@ -9,6 +9,8 @@ export function loadDashboard(r: Repositories, now = Date.now()): Dashboard {
     refuels: r.refuels.listAll(),
     maintenance: r.maintenance.listAll(),
     receipts: r.fuel.receipts.list(),
+    issues: r.fuel.issues.list(),
+    inventories: r.fuel.inventories.list(),
     fuelTypes: r.fuel.types.list({ includeInactive: true }),
     settings: r.settings.get(),
     now,

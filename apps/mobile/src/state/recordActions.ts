@@ -15,6 +15,8 @@ const KIND_ENTITY: Record<JournalKind, EntityName> = {
   refuel: 'refuels',
   maintenance: 'maintenance',
   receipt: 'fuelReceipts',
+  issue: 'fuelIssues',
+  inventory: 'fuelInventories',
 };
 
 /** Дії над записом журналу (зупинити / редагувати / видалити) з урахуванням прав. */
@@ -29,6 +31,8 @@ export function useRecordActions(userName: (id: string) => string) {
       refuel: { pathname: '/refuel', params: { id: it.id } },
       maintenance: { pathname: '/maintenance', params: { id: it.id } },
       receipt: { pathname: '/receipt', params: { id: it.id } },
+      issue: { pathname: '/issue', params: { id: it.id } },
+      inventory: { pathname: '/inventory', params: { id: it.id } },
     } as const;
     router.push(routes[it.kind]);
   };
@@ -39,6 +43,8 @@ export function useRecordActions(userName: (id: string) => string) {
       if (it.kind === 'session') repos.sessions.remove(it.id);
       else if (it.kind === 'refuel') repos.refuels.remove(it.id);
       else if (it.kind === 'maintenance') repos.maintenance.remove(it.id);
+      else if (it.kind === 'issue') repos.fuel.issues.remove(it.id);
+      else if (it.kind === 'inventory') repos.fuel.inventories.remove(it.id);
       else repos.fuel.receipts.remove(it.id);
     } catch (e) {
       showError(e, 'Не вдалося видалити');

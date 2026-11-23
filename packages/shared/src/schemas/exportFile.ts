@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { ENTITY_SCHEMAS, zId, zTime, type Dataset } from './entities';
+import { ENTITY_NAMES, ENTITY_SCHEMAS, zId, zTime, type Dataset } from './entities';
 
 /** Версія схеми даних. Збільшується разом із міграціями, що змінюють формат записів. */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 export const FILE_FORMAT = 'gen-export';
 export const FILE_FORMAT_VERSION = 1;
 export const FILE_EXTENSION = 'gen';
@@ -59,7 +59,15 @@ export function parseExportPayload(json: unknown): PayloadParseResult {
   return { ok: true, payload: r.data as ExportPayload };
 }
 
-/** Перетворення старих версій формату. Поки що версія одна. */
+/**
+ * Перетворення старих версій формату:
+ *  v1 → v2: зʼявилися таблиці видачі та інвентаризації складу (у старих файлах — порожні).
+ */
 function upgradePayload(json: unknown): unknown {
-  return json;
+  if (!json || typeof json !== 'object') return json;
+  const p = json as { schemaVersion?: number; tables?: Record<string, unknown> };
+  if (p.tables && typeof p.tables === 'object') {
+    for (const name of ENTITY_NAMES) if (!Array.isArray(p.tables[name])) p.tables[name] = [];
+  }
+  return p;
 }

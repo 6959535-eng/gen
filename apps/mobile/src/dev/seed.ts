@@ -94,6 +94,11 @@ export async function seedDemo(repos: Repositories, setActor: (a: CurrentActor |
   repos.fuel.receipts.create({ at: start + 7 * HOUR, fuelTypeId: A92, volumeMl: L(40), supplier: 'АЗС', note: '' });
   repos.fuel.receipts.create({ at: start + 8 * DAY + 9 * HOUR, fuelTypeId: DT, volumeMl: L(500), supplier: 'Склад бригади', note: '' });
 
+  // Склад окремо від генераторів: видача (кому / куди) й інвентаризація
+  repos.fuel.issues.create({ at: start + 3 * DAY + 10 * HOUR, fuelTypeId: A95, volumeMl: L(20), recipient: 'Авто АА1234', note: '' });
+  repos.fuel.issues.create({ at: start + 9 * DAY + 11 * HOUR, fuelTypeId: DT, volumeMl: L(60), recipient: 'Каністри на позицію 2', note: '' });
+  repos.fuel.inventories.create({ at: start + 12 * DAY + 9 * HOUR, fuelTypeId: DT, actualMl: L(835), note: 'Замір щупом' });
+
   // Перша заправка «до повного» — точка відліку для розрахунку витрати
   for (const g of [g1, g2]) {
     repos.refuels.create({

@@ -11,6 +11,8 @@ const OPERATOR_CREATE: ReadonlySet<EntityName> = new Set([
   'workSessions',
   'refuels',
   'fuelReceipts',
+  'fuelIssues',
+  'fuelInventories',
   'maintenance',
 ]);
 

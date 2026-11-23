@@ -76,6 +76,15 @@ describe('файл .gen', () => {
     expect(() => readContainerHeader(new TextEncoder().encode('{"hello":1}'))).toThrow(GenFileError);
   });
 
+  it('старий файл (схема 1, без таблиць видачі й інвентаризації) відкривається', () => {
+    const old = JSON.parse(JSON.stringify({ ...payload, schemaVersion: 1 }));
+    delete old.tables.fuelIssues;
+    delete old.tables.fuelInventories;
+    const r = parseExportPayload(old);
+    expect(r.ok && r.payload.tables.fuelIssues).toEqual([]);
+    expect(r.ok && r.payload.tables.generators[0]).toEqual(g);
+  });
+
   it('новіша схема відхиляється, некоректні дані — теж', () => {
     expect(parseExportPayload({ ...payload, schemaVersion: SCHEMA_VERSION + 1 })).toMatchObject({ ok: false, reason: 'newer_schema' });
     const bad = { ...payload, tables: { ...payload.tables, generators: [{ ...g, tankMl: -1 }] } };

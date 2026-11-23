@@ -122,6 +122,30 @@ export const fuelReceiptFields = {
 export const zFuelReceipt = z.object({ ...metaShape, ...fuelReceiptFields });
 export type FuelReceipt = z.infer<typeof zFuelReceipt>;
 
+// ---------- Видача пального зі складу ----------
+/** Склад ведеться окремо від генераторів: видача вноситься вручну (кому / куди). */
+export const fuelIssueFields = {
+  at: zTime,
+  fuelTypeId: zId,
+  volumeMl: z.number().int().positive('Кількість літрів має бути більше 0'),
+  /** Кому / куди видано: «авто АА1234», «каністри на позицію», «генератор Г-1» */
+  recipient: zText(80),
+  note: zText(500),
+};
+export const zFuelIssue = z.object({ ...metaShape, ...fuelIssueFields });
+export type FuelIssue = z.infer<typeof zFuelIssue>;
+
+// ---------- Інвентаризація складу ----------
+/** Фактичний залишок після вимірювання. Залишок складу рахується від останньої інвентаризації. */
+export const fuelInventoryFields = {
+  at: zTime,
+  fuelTypeId: zId,
+  actualMl: z.number().int().nonnegative('Залишок не може бути відʼємним'),
+  note: zText(500),
+};
+export const zFuelInventory = z.object({ ...metaShape, ...fuelInventoryFields });
+export type FuelInventory = z.infer<typeof zFuelInventory>;
+
 // ---------- Обслуговування ----------
 export const MAINTENANCE_KINDS = ['oil', 'filters', 'plugs', 'repair', 'other'] as const;
 export const zMaintenanceKind = z.enum(MAINTENANCE_KINDS);
@@ -173,6 +197,8 @@ export const ENTITY_SCHEMAS = {
   workSessions: zWorkSession,
   refuels: zRefuel,
   fuelReceipts: zFuelReceipt,
+  fuelIssues: zFuelIssue,
+  fuelInventories: zFuelInventory,
   maintenance: zMaintenance,
   settings: zSetting,
   auditLog: zAuditEntry,
@@ -188,6 +214,8 @@ export interface EntityMap {
   workSessions: WorkSession;
   refuels: Refuel;
   fuelReceipts: FuelReceipt;
+  fuelIssues: FuelIssue;
+  fuelInventories: FuelInventory;
   maintenance: Maintenance;
   settings: Setting;
   auditLog: AuditEntry;
@@ -208,6 +236,8 @@ export const ENTITY_LABELS: Record<EntityName, string> = {
   workSessions: 'Сесія роботи',
   refuels: 'Заправка',
   fuelReceipts: 'Надходження пального',
+  fuelIssues: 'Видача пального',
+  fuelInventories: 'Інвентаризація',
   maintenance: 'Обслуговування',
   settings: 'Налаштування',
   auditLog: 'Журнал',

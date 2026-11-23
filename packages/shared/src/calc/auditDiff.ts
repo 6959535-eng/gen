@@ -30,6 +30,8 @@ export const FIELD_LABELS: Record<string, string> = {
   source: 'Джерело',
   meterMin: 'Мотогодини',
   supplier: 'Від кого',
+  recipient: 'Кому / куди',
+  actualMl: 'Фактичний залишок',
   kind: 'Тип',
   resetsInterval: 'Скидає інтервал ТО',
   description: 'Опис',

@@ -48,7 +48,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: isDev ? 'Генератори (dev)' : 'Облік генераторів',
   slug: 'gen-oblik',
-  version: '1.1.0',
+  version: '1.2.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
   scheme: isDev ? 'genoblik-dev' : 'genoblik',

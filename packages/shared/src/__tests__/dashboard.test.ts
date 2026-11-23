@@ -12,7 +12,7 @@ describe('головна', () => {
   const receipts = [{ ...meta(), at: T0, fuelTypeId: DT, volumeMl: 100_000, supplier: '', note: '' }];
   const now = T0 + 42 * HOUR;
   const d = buildDashboard({
-    generators: [g], sessions, refuels, maintenance: [], receipts, fuelTypes, settings: DEFAULT_SETTINGS, now,
+    generators: [g], sessions, refuels, maintenance: [], receipts, issues: [], inventories: [], fuelTypes, settings: DEFAULT_SETTINGS, now,
   });
 
   it('картка: працює зараз, мотогодини, ТО', () => {
@@ -25,15 +25,16 @@ describe('головна', () => {
     expect(d.warnings[0]!.level).toBe('danger');
     expect(d.warnings.some((w) => w.text.includes('+50%'))).toBe(true);
   });
-  it('склад: залишок і запас годин за фактичною витратою', () => {
+  it('склад: заправки генераторів не списують зі складу; запас годин за фактичною витратою', () => {
     const s = d.stock.find((x) => x.fuelType.id === DT)!;
-    expect(s.balanceMl).toBe(65_000);
+    expect(s.balanceMl).toBe(100_000);
     expect(s.rateIsNorm).toBe(false);
-    expect(s.hoursLeft).toBeCloseTo(65 / 1.5);
+    expect(s.hoursLeft).toBeCloseTo(100 / 1.5);
+    expect(s.lastInventoryAt).toBeNull();
   });
   it('без історії витрат — запас за нормою', () => {
     const d2 = buildDashboard({
-      generators: [g], sessions: [], refuels: [], maintenance: [], receipts, fuelTypes, settings: DEFAULT_SETTINGS, now,
+      generators: [g], sessions: [], refuels: [], maintenance: [], receipts, issues: [], inventories: [], fuelTypes, settings: DEFAULT_SETTINGS, now,
     });
     const s = d2.stock.find((x) => x.fuelType.id === DT)!;
     expect(s.rateIsNorm).toBe(true);

@@ -5,7 +5,7 @@ import type { RepoContext } from './context';
 import { RepoError } from './errors';
 import { ensureValid } from './workSessions';
 
-type Validated = 'refuels' | 'maintenance' | 'fuelReceipts';
+type Validated = 'refuels' | 'maintenance' | 'fuelReceipts' | 'fuelIssues' | 'fuelInventories';
 
 /**
  * CRUD з бізнес-валідацією (помилки блокують, попередження вимагають confirm: true).
