@@ -29,6 +29,8 @@ yarn-error.*
 # macOS
 .DS_Store
 *.pem
+# Публічний сертифікат перевірки OTA-оновлень (вбудовується в APK). Приватний ключ — поза репозиторієм.
+!certs/certificate.pem
 
 # local env files
 .env*.local
