@@ -163,6 +163,7 @@ export default function DataScreen() {
           ))}
         </Card>
       ) : null}
+      <Button kind="ghost" title="Про додаток і оновлення" onPress={() => router.push('/about')} />
       <View style={{ height: 12 }} />
     </Screen>
   );

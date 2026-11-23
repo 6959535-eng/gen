@@ -62,10 +62,25 @@ docker compose -f /opt/gen/deploy/docker-compose.yml logs server | grep КОД
 ## Оновлення сервера
 
 ```bash
-bash /opt/gen/deploy/update.sh
+git -C /opt/gen pull && bash /opt/gen/deploy/update.sh
 ```
 
 Перед оновленням автоматично робиться копія бази.
+
+## Оновлення додатка на телефонах (з версії 1.3.0)
+
+Сервер кожні 5 хвилин підтягує з гілки `ota` репозиторію підписані OTA-оновлення й останній APK
+(`/var/lib/gen/ota`, cron `/etc/cron.d/gen-ota`) і роздає їх телефонам:
+
+- `GET /api/updates/manifest` — протокол expo-updates v1 (204, якщо оновлення немає);
+- `GET /api/app/latest`, `GET /api/app/apk/<файл>` — новий APK для кнопки «Встановити» в додатку.
+
+Ключа підпису на сервері немає: навіть зламаний сервер не зможе підсунути телефонам чужий код.
+Перевірити вручну, що сервер бачить оновлення:
+
+```bash
+/opt/gen/deploy/ota-sync.sh && cat /var/lib/gen/ota/updates/*/latest.json /var/lib/gen/ota/apk/latest.json
+```
 
 ## Резервні копії бази сервера
 

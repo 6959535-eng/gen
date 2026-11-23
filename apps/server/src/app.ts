@@ -24,9 +24,12 @@ import {
 import { setMeta, type Sqlite } from './db';
 import { RecordStore } from './store';
 import { processPush } from './sync';
+import { registerUpdateRoutes } from './updates';
 
 export interface AppOptions {
   db: Sqlite;
+  /** Каталог з оновленнями додатка (гілка `ota`) */
+  otaDir?: string;
   now?: () => number;
   logger?: boolean;
 }
@@ -63,6 +66,8 @@ export function buildApp(opts: AppOptions): FastifyInstance {
     const u = store.get('users', actorId) as unknown as User | null;
     return !!u && u.role === 'admin' && u.isActive && u.deletedAt === null;
   };
+
+  if (opts.otaDir) registerUpdateRoutes(app, opts.otaDir);
 
   app.get('/api/v1/health', async () => ({ ok: true, api: SYNC_API_VERSION, serverId: serverId(db), time: now() }));
 

@@ -19,6 +19,8 @@ import { useCurrentUser, useData, useMinuteTick, useNow, useRepos } from '../../
 import { loadDashboard } from '../../state/dashboard';
 import { useSession } from '../../state/session';
 import { useSyncStatus } from '../../state/sync';
+import { useAppUpdates } from '../../state/appUpdates';
+import { applyOtaUpdate } from '../../services/appUpdates';
 import { showError } from '../../ui/errors';
 import { Banner, Button, Card, Empty, KV, Pill, Row, Screen, T } from '../../ui/kit';
 import { colors } from '../../ui/theme';
@@ -59,6 +61,7 @@ export default function Home() {
         <Banner level="danger" text="Час телефона раніший за останній запис у базі. Перевірте дату й час у налаштуваннях телефона." />
       ) : null}
       <SyncBanner />
+      <UpdateBanner />
       {dash.warnings.map((w, i) => (
         <Banner key={i} level={w.level} text={w.text} />
       ))}
@@ -233,6 +236,18 @@ function SyncBanner() {
         action={{ title: 'Деталі', onPress: () => router.push('/server') }}
       />
     );
+  }
+  return null;
+}
+
+/** Оновлення додатка: готове OTA або новий APK. */
+function UpdateBanner() {
+  const { otaReady, apk } = useAppUpdates();
+  if (otaReady) {
+    return <Banner level="info" text="Завантажено оновлення додатка" action={{ title: 'Перезапустити', onPress: () => applyOtaUpdate() }} />;
+  }
+  if (apk) {
+    return <Banner level="info" text={`Доступна нова версія ${apk.versionName}`} action={{ title: 'Встановити', onPress: () => router.push('/about') }} />;
   }
   return null;
 }

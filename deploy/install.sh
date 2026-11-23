@@ -50,6 +50,11 @@ cat > /etc/cron.d/gen-backup <<CRON
 15 3 * * * root sqlite3 $DATA/gen.db ".backup '$BACKUPS/gen-\$(date +\\%F).db'" && find $BACKUPS -name 'gen-*.db' -mtime +30 -delete
 CRON
 
+# Оновлення додатка (OTA та APK) з гілки `ota` — кожні 5 хвилин
+chmod +x "$DIR/deploy/ota-sync.sh"
+echo "*/5 * * * * root $DIR/deploy/ota-sync.sh >/dev/null 2>&1" > /etc/cron.d/gen-ota
+"$DIR/deploy/ota-sync.sh" || true
+
 echo "Очікування HTTPS-сертифіката…"
 for i in $(seq 1 60); do
   if curl -fsS "https://$DOMAIN/api/v1/health" >/dev/null 2>&1; then OK=1; break; fi

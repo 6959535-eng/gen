@@ -78,6 +78,7 @@ export default function MainLayout() {
         <Stack.Screen name="import" options={{ title: 'Імпорт даних' }} />
         <Stack.Screen name="restore" options={{ title: 'Відновлення з копії' }} />
         <Stack.Screen name="server" options={{ title: 'Сервер' }} />
+        <Stack.Screen name="about" options={{ title: 'Про додаток' }} />
       </Stack>
     </View>
   );

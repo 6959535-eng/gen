@@ -14,6 +14,12 @@ const EAS_PROJECT_ID = '';
 /** Адреса сервера синхронізації за замовчуванням (підставляється у форму підключення). */
 const DEFAULT_SERVER = process.env.GEN_DEFAULT_SERVER ?? '173-242-63-63.sslip.io';
 
+/**
+ * Версія «нативної частини». Поки вона та сама, оновлення приходять по повітрю (OTA) з вашого сервера.
+ * Збільшуйте її ЛИШЕ разом із новим APK, якщо змінилися нативні модулі, дозволи чи версія Expo.
+ */
+const RUNTIME_VERSION = '1';
+
 const variant = (process.env.APP_VARIANT ?? 'development') as 'development' | 'preview' | 'production';
 const isDev = variant === 'development';
 
@@ -48,7 +54,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: isDev ? 'Генератори (dev)' : 'Облік генераторів',
   slug: 'gen-oblik',
-  version: '1.2.0',
+  version: '1.3.0',
+  runtimeVersion: RUNTIME_VERSION,
+  updates: {
+    enabled: !isDev,
+    url: `https://${DEFAULT_SERVER}/api/updates/manifest`,
+    checkAutomatically: 'ON_LOAD',
+    // Не чекаємо мережу при запуску: оновлення завантажується у фоні й застосовується з наступного запуску
+    fallbackToCacheTimeout: 0,
+    // Оновлення без підпису вашим ключем телефон відкидає
+    codeSigningCertificate: './certs/certificate.pem',
+    codeSigningMetadata: { keyid: 'main', alg: 'rsa-v1_5-sha256' },
+  },
   orientation: 'portrait',
   icon: './assets/icon.png',
   scheme: isDev ? 'genoblik-dev' : 'genoblik',
@@ -73,6 +90,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Резервне копіювання Android (Google Drive) вимкнено: дані не мають покидати телефон.
     allowBackup: false,
     blockedPermissions: isDev ? BLOCKED : [...BLOCKED, ...BLOCKED_RELEASE],
+    // Встановлення нової версії APK з вашого сервера (Android завжди питає підтвердження)
+    permissions: ['android.permission.REQUEST_INSTALL_PACKAGES'],
     // «Відкрити за допомогою» для файлів .gen (месенджери надсилають їх як application/octet-stream)
     intentFilters: [
       {
@@ -91,6 +110,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-router',
     'expo-sqlite',
     'expo-secure-store',
+    'expo-updates',
     './plugins/withReleaseSigning',
     ['expo-splash-screen', { backgroundColor: '#0e1014', image: './assets/splash-icon.png', imageWidth: 160 }],
   ],

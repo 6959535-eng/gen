@@ -10,7 +10,7 @@ const HOST = process.env.HOST ?? '0.0.0.0';
 
 mkdirSync(DATA_DIR, { recursive: true });
 const db = openDb(path.join(DATA_DIR, 'gen.db'));
-const app = buildApp({ db, logger: true });
+const app = buildApp({ db, logger: true, otaDir: process.env.OTA_DIR ?? path.join(DATA_DIR, 'ota') });
 
 const setup = ensureSetupCode(db);
 if (setup) {
